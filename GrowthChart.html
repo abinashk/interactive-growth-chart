@@ -24,12 +24,13 @@
 
 //set the margins
 var margin = {top: 20, right: 150, bottom: 50, left: 50},
-    width = 900 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = $("#graphic").parent().width() - margin.left - margin.right,
+    height = $("#graphic").parent().width() - margin.top - margin.bottom;
 
 
 // set the type of number here, n is a number with a comma, .2f will get you 2 decimal points
 var NumbType = d3.format(".2f");
+var currencyType = d3.format("$,.2f");
 
 //color function pulls from array of colors stored in color.js
 var color = d3.scale.category10();
@@ -170,7 +171,7 @@ function redraw() {
         .attr("y1", 0)
         .attr("x2", 0)
         .attr("y2", height)
-        .attr("stroke-width", 1)
+        .attr("stroke-width", 0.5)
         .attr("stroke", "grey");
 
     //append the rectangle to capture mouse
