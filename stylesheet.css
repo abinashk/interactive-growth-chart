@@ -26,6 +26,11 @@ fill: #fff;
   stroke-linejoin: round;
   stroke-linecap:round;
 }
+
+.tick line{
+    opacity: 0.3;
+    stroke-dasharray: 5 5; 
+}
 	
 .hed {
 	font-family: SourceSansPro-Bold;
@@ -63,27 +68,7 @@ fill: #fff;
 	font-size: 10pt;
 	margin-bottom:0px;
 	fill: #231F20; 
-	}
-.tip1 {
-	font-family: SourceSansPro-Bold;
-	font-size: 14pt;
-	text-align: center; 
-	margin-bottom:-12px; 
-	margin-top:0px;
-	}
-	
-.tip2 {
-	font-family: SourceSansPro-ExtraLight;
-	font-size: 10pt;
-	text-align: center; 
-	margin-bottom:-12px; 
 	}	
-.tip3 {
-	font-family: SourceSansPro-ExtraLight;
-	font-size: 10pt;
-	text-align: center; 
-	margin-bottom:0px; 
-	}		
 
 @font-face {
   font-family: 'SourceSansPro-ExtraLight';

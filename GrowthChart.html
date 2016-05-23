@@ -3,19 +3,30 @@
 <body>
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 <link href="stylesheet.css" rel="stylesheet" type="text/css">
+<!-- <link href="tip.css" rel="stylesheet" type="text/css"> -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" charset="utf-8"></script>
 <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
             
-<div class="container">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h2>Total Growth</h2>      
-        </div>
-        <div class="panel-body">
-            <div id="graphic"> </div>
+<div class="container-fluid">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="container-fluid panel-container">
+                    <div class="col-md-8 text-left">
+                        <h1>Total Growth</h1>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <h1 id="current-total-growth">0.00</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="legend"> </div>
+                <div id="graphic"> </div>
+            </div>
         </div>
     </div>
 </div>
@@ -25,12 +36,16 @@
 //set the margins
 var margin = {top: 20, right: 150, bottom: 50, left: 50},
     width = $("#graphic").parent().width() - margin.left - margin.right,
-    height = $("#graphic").parent().width() - margin.top - margin.bottom;
+    height = $("#graphic").parent().width() * 0.5 - margin.top - margin.bottom;
 
 
-// set the type of number here, n is a number with a comma, .2f will get you 2 decimal points
+// number formatting
 var NumbType = d3.format(".2f");
 var currencyType = d3.format("$,.2f");
+
+String.prototype.capitalizeFirstLetter = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
 
 //color function pulls from array of colors stored in color.js
 var color = d3.scale.category10();
@@ -41,7 +56,11 @@ var xscaleticks = 4;
 //return goal amount by today
 var goalByToday = function(d){
     return NumbType(data.goal * parseDate(d.date).getDate() / new Date(parseDate(d.date).getYear(), parseDate(d.date).getMonth(), 0).getDate())
-} 
+};
+
+var getXAxisTickVaues = function(){
+    return [1, 7, 14, 21, 28];
+}
                
 //some date util functions
 var parseDate = d3.time.format("%Y-%m-%d").parse;
@@ -52,33 +71,35 @@ var getCurrentMonthMaxDay = function(){
     return lastDayOfMonth;    
 }
 
+function LastDayOfCurrentMonth() {
+    var today = new Date();
+    var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
+    // console.log(lastDayOfMonth.toISOString().substring(0, 10));
+    return lastDayOfMonth.toISOString().substring(0, 10);
+};
+function FirstDayOfCurrentMonth() {
+    var today = new Date();
+    var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // console.log(firstDayOfMonth.toISOString().substring(0, 10));
+    return firstDayOfMonth.toISOString().substring(0, 10);
+}
+
+
 //create an SVG
 var svg = d3.select("#graphic").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");  
-
-
- //make a clip path for the graph  
- var clip = svg.append("svg:clipPath")
-    .attr("id", "clip")
-    .append("svg:rect")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("width", width)
-    .attr("height", height);   
-
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    
 var focus = svg.append("g") 
     .style("display", "none");
-       
                 
 //import the data
 d3.json("growth_chart_data.json", function(error, json) {
     if (error) return console.warn(error);
     data = json;
-    // #TODO: make this dynamic
-    data['goal_growth'] = [{ "value":0, "date":"2016-05-01"}, { "value":data['goal'], "date":"2016-05-31" }]
+    data['goal_growth'] = [{ "value":0, "date":FirstDayOfCurrentMonth()}, { "value":data['goal'], "date":LastDayOfCurrentMonth() }]
     redraw();
 });
 
@@ -123,6 +144,8 @@ function redraw() {
         .scale(x)
         .orient("bottom")
         .tickSize(0-height)
+        .tickValues(getXAxisTickVaues())
+        .outerTickSize(0);
 
     
     svg.append("svg:g")
@@ -132,7 +155,8 @@ function redraw() {
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient("left")
-        .tickSize(0-width)    
+        .tickSize(0-width)
+        .tickFormat(d3.format("s"))    
     svg.append("svg:g")
         .attr("class", "y axis");
 
@@ -142,7 +166,6 @@ function redraw() {
  
     //append a g tag for each line and give it a unique ID based on the column name of the data     
     var thegraphEnter=thegraph.enter().append("g")
-        .attr("clip-path", "url(#clip)")
         .attr("class", "thegraph")
         .attr('id',function(d){ return d.name+"-line"; })
         .style("stroke-width",2.5)
@@ -172,7 +195,15 @@ function redraw() {
         .attr("x2", 0)
         .attr("y2", height)
         .attr("stroke-width", 0.5)
-        .attr("stroke", "grey");
+        .attr("stroke", "grey")
+
+    focus.append("rect")
+        .attr("class", "tip")
+        .attr("width", 160)
+        .attr("height", 100)
+        .attr("stroke", "grey")
+        .attr("fill-opacity", 1)
+        .attr("fill", "grey");
 
     //append the rectangle to capture mouse
     svg.append("rect")
@@ -180,16 +211,27 @@ function redraw() {
         .attr("height", height)
         .style("fill", "none")
         .style("pointer-events", "all")
-        .on("mouseover", function() { focus.style("display", null); })
-        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mouseover", function() { focus.style("display", null);})
+        .on("mouseout", function() { focus.style("display", "none");})
         .on("mousemove", mousemove);
 
     //handle mouse movement over the graph event
     function mousemove() {
         var x0 = x.invert(d3.mouse(this)[0]);
+        var y0 = y.invert(d3.mouse(this)[1]);
+        var width0 = x.invert(focus.select("rect.tip").attr("width"))
+        if (width0 > x0){
+            width0 = -1;
+        }
         focus.select("line.x")
             .attr("transform",
-                  "translate(" + x(Math.round(x0)) + ")");
+                  "translate(" + x(x0) + ")");
+
+        focus.select("rect.tip")
+            .attr("transform",
+                  "translate(" + x(x0 - width0) + "," + y(y0) + ")");
+
+        d3.select("#current-total-growth").html(currencyType(data.goal_growth[1].value * Math.round(x0) / Math.round(x.invert(width))));
     }
 
     //append the legend to the graph #TODO: change its design to what's in the requirement
@@ -250,20 +292,10 @@ function redraw() {
     legendEnter.append('text')
         .attr('x', width+35)
         .attr('y', function(d){return legendscale(d.values[d.values.length-1].value);})
-        .text(function(d){ return d.name; });
+        .text(function(d){ return d.name.split("_")[0].capitalizeFirstLetter(); });
 
     //set variable for updating the graph
     var thegraphUpdate = d3.transition(thegraph);
-    
-    //change values of path and then the circles to those of the new series
-    thegraphUpdate.select("path")
-        .attr("d", function(d, i) {       
-      
-            lastvalues[i]=d.values[d.values.length-1].value;         
-            lastvalues.sort(function (a,b){return b-a});
-            legendscale.domain(lastvalues);
-        
-            return line(d.values); });
 
       //for legend items
       var legendUpdate=d3.transition(legend);
@@ -277,10 +309,10 @@ function redraw() {
 
 
      //update the axes  
-    d3.transition(svg).select(".y.axis")
+    svg.select(".y.axis")
         .call(yAxis);   
           
-    d3.transition(svg).select(".x.axis")
+    svg.select(".x.axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis);
 
