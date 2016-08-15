@@ -262,7 +262,9 @@ function redraw() {
 
     $.ajax({
         url : "tooltip.html",
+        dataType: 'text',
         success : function(result){
+            console.log(result);
             tiptext.html(result);
         }
     });
