@@ -5,7 +5,7 @@ var margin = {top: 20, right: 150, bottom: 50, left: 50},
 
 
 // number formatting
-var NumbType = d3.format(".2f");
+var numType = d3.format(".2f");
 var currencyType = d3.format("$,.2f");
 
 String.prototype.capitalizeFirstLetter = function() {
@@ -25,7 +25,7 @@ var xscaleticks = 4;
 
 //return goal amount by today
 var goalByToday = function(d){
-    return NumbType(data.goal * parseDate(d.date).getDate() / new Date(parseDate(d.date).getYear(), parseDate(d.date).getMonth(), 0).getDate())
+    return numType(data.goal * parseDate(d.date).getDate() / new Date(parseDate(d.date).getYear(), parseDate(d.date).getMonth(), 0).getDate())
 };
 
 var getXAxisTickVaues = function(){
@@ -133,7 +133,8 @@ function redraw() {
         .scale(y)
         .orient("left")
         .tickSize(0-width)
-        .tickFormat(d3.format("s"))    
+        .tickFormat(d3.format("s"))   
+         
     svg.append("svg:g")
         .attr("class", "y axis");
 
@@ -264,7 +265,6 @@ function redraw() {
         url : "tooltip.html",
         dataType: 'text',
         success : function(result){
-            console.log(result);
             tiptext.html(result);
         }
     });
