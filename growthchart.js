@@ -14,8 +14,8 @@ String.prototype.capitalizeFirstLetter = function() {
 
 //get months in data
 var getDataKeys = function(d) {
-    return d3.keys(d).filter(function(key) { return (key !== "goal"); });    
-}
+    return d3.keys(d).filter(function(key) { return (key !== "goal"); });
+};
 
 //color function pulls from array of colors stored in color.js
 var color = d3.scale.category10();
@@ -25,21 +25,22 @@ var xscaleticks = 4;
 
 //return goal amount by today
 var goalByToday = function(d){
-    return numType(data.goal * parseDate(d.date).getDate() / new Date(parseDate(d.date).getYear(), parseDate(d.date).getMonth(), 0).getDate())
+    return numType( data.goal * parseDate(d.date).getDate() / new Date(parseDate(d.date).getYear(), parseDate(d.date).getMonth(), 0).getDate());
 };
 
 var getXAxisTickVaues = function(){
     return [1, 7, 14, 21, 28];
-}
-               
+};
+
 //some date util functions and variables
 var parseDate = d3.time.format("%Y-%m-%d").parse;
 var formatDate = d3.time.format("%b %d, '%y");
 var getCurrentMonthMaxDay = function(){
     var today = new Date();
     var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-    return lastDayOfMonth;    
-}
+    return lastDayOfMonth;
+};
+
 var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
@@ -49,7 +50,8 @@ function LastDayOfCurrentMonth() {
     var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
     // console.log(lastDayOfMonth.toISOString().substring(0, 10));
     return lastDayOfMonth.toISOString().substring(0, 10);
-};
+}
+
 function FirstDayOfCurrentMonth() {
     var today = new Date();
     var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -63,27 +65,27 @@ var svg = d3.select("#graphic").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-    
-var focus = svg.append("g") 
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var focus = svg.append("g")
     .style("display", "none");
-                
+
 //import the data
 d3.json("growth_chart_data.json", function(error, json) {
     if (error) return console.warn(error);
     data = json;
-    data['goal_growth'] = [{ "value":0, "date":FirstDayOfCurrentMonth()}, { "value":data['goal'], "date":LastDayOfCurrentMonth() }]
+    data.goal_growth = [{ "value":0, "date":FirstDayOfCurrentMonth()}, { "value":data.goal, "date":LastDayOfCurrentMonth() }];
     redraw();
 });
 
 
 //one function to rule them all, but this can be refactored
-function redraw() { 
+function redraw() {
 
     // store reference to tooltip to avoid looking it up all the time
     var simpleTooltip = d3.selectAll("#tooltipContainer")
         .style("opacity", 0); // hide it since we are done testing now
-    
+
     //get color codes set for each monthlyu series
     color.domain(d3.keys(data).filter(function(key) { return (key !== "goal"); }));
 
@@ -91,7 +93,7 @@ function redraw() {
         return { name: name, values: data[name] };
     });
 
-    
+
     //make an empty variable to stash the last values into to sort the legend
     var lastvalues=[];
 
@@ -110,7 +112,7 @@ function redraw() {
         ])
         .range([height, 0]);
 
-    //draw lines        
+    //draw lines
     var line = d3.svg.line()
         .x(function(d) { return x(parseDate(d.date).getDate()); })
         .y(function(d) { return y(d.value); });
@@ -124,29 +126,29 @@ function redraw() {
         .tickValues(getXAxisTickVaues())
         .outerTickSize(0);
 
-    
+
     svg.append("svg:g")
         .attr("class", "x axis");
 
-    //create and draw the y axis                  
+    //create and draw the y axis
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient("left")
         .tickSize(0-width)
-        .tickFormat(d3.format("s"))   
-         
+        .tickFormat(d3.format("s"));
+
     svg.append("svg:g")
         .attr("class", "y axis");
 
     //bind the data
     var thegraph = svg.selectAll(".thegraph")
-        .data(linedata)
- 
-    //append a g tag for each line and give it a unique ID based on the column name of the data     
+        .data(linedata);
+
+    //append a g tag for each line and give it a unique ID based on the column name of the data
     var thegraphEnter=thegraph.enter().append("g")
         .attr("class", "thegraph")
         .attr('id',function(d){ return d.name+"-line"; })
-        .style("stroke-width",2.5)
+        .style("stroke-width",2.5);
 
 
     //append the line to the graph
@@ -168,31 +170,28 @@ function redraw() {
     //append the legend to the graph #TODO: change its design to what's in the requirement
     var legend = svg.selectAll('.legend')
         .data(linedata);
-    
+
     var legendEnter=legend
         .enter()
         .append('g')
         .attr('class', 'legend')
         .attr('id',function(d){ return d.name; })
-        .on('click', function (d) {                            
-            if($(this).css("opacity") == 1){                  
-
-                var elemented = document.getElementById(this.id +"-line");   
-                d3.select(elemented)
+        .on('click', function (d) {
+            if($(this).css("opacity") == 1){
+                d3.select(document.getElementById(this.id +"-line"))
                     .transition()
                     .style("opacity",0)
                     .style("display",'none');
-            
+
                 d3.select(this)
                     .attr('fakeclass', 'fakelegend')
-                    .style ("opacity", .2);
-            } else {
-            
-                var elemented = document.getElementById(this.id +"-line");
-                d3.select(elemented)
+                    .style ("opacity", 0.2);
+            }
+            else {
+                d3.select(document.getElementById(this.id +"-line"))
                     .style("display", "block")
                     .style("opacity",1);
-            
+
                 d3.select(this)
                     .attr('fakeclass','legend')
                     .style ("opacity", 1);}
@@ -208,10 +207,10 @@ function redraw() {
         .attr('cx', width +20)
         .attr('cy', function(d){return legendscale(d.values[d.values.length-1].value);})
         .attr('r', 7)
-        .style('fill', function(d) { 
+        .style('fill', function(d) {
             return color(d.name);
         });
-                        
+
     //add the legend text
     legendEnter.append('text')
         .attr('x', width+35)
@@ -223,19 +222,19 @@ function redraw() {
 
     //for legend items
     var legendUpdate=d3.transition(legend);
-      
+
     legendUpdate.select("circle")
-        .attr('cy', function(d, i){  
+        .attr('cy', function(d, i){
             return legendscale(d.values[d.values.length-1].value);});
 
     legendUpdate.select("text")
         .attr('y',  function (d) {return legendscale(d.values[d.values.length-1].value);});
 
 
-     //update the axes  
+     //update the axes
     svg.select(".y.axis")
-        .call(yAxis);   
-          
+        .call(yAxis);
+
     svg.select(".x.axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis);
@@ -297,8 +296,8 @@ function redraw() {
                 dateObj = parseDate(x.date);
                 dateStr = dateObj.getFullYear() + " " + monthNames[dateObj.getMonth()];
                 d3.select("#tooltipMetricName" + (i+1)).html(dateStr);
-                d3.select("#tooltipMetricValue"+ (i+1)).html(currencyType(x.value)); 
-            }   
+                d3.select("#tooltipMetricValue"+ (i+1)).html(currencyType(x.value));
+            }
         });
 
         focus.select("g.wrapper")
@@ -310,7 +309,7 @@ function redraw() {
                   "translate(" + x(Math.round(x0)) + ")");
 
         d3.select("#current-total-growth").html(currencyType(data.goal_growth[1].value * Math.round(x0) / Math.round(x.invert(width))));
-    };
+    }
 
 //end of the redraw function
-};
+}
